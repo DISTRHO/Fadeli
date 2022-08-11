@@ -1,0 +1,115 @@
+name: build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+env:
+  DEBIAN_FRONTEND: noninteractive
+  HOMEBREW_NO_AUTO_UPDATE: 1
+
+jobs:
+  macos-11:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up dependencies
+        run: |
+          brew install faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(sysctl -n hw.logicalcpu)
+
+  ubuntu-18_04:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(nproc)
+
+  ubuntu-20_04:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(nproc)
+
+  ubuntu-22_04:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(nproc)
+
+  ubuntu-mingw-win32:
+    runs-on: ubuntu-20.04
+    env:
+      AR: i686-w64-mingw32-ar
+      CC: i686-w64-mingw32-gcc
+      CXX: i686-w64-mingw32-g++
+      CROSS_COMPILING: "true"
+      PKG_CONFIG: "false"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fix GitHub's mess
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update -qq
+          sudo apt-get install -yqq --allow-downgrades libgd3/focal libpcre2-8-0/focal libpcre2-16-0/focal libpcre2-32-0/focal libpcre2-posix2/focal
+          sudo apt-get purge -yqq libmono* moby* mono* php* libgdiplus libpcre2-posix3 libzip4
+      - name: Set up dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(nproc)
+
+  ubuntu-mingw-win64:
+    runs-on: ubuntu-20.04
+    env:
+      AR: x86_64-w64-mingw32-ar
+      CC: x86_64-w64-mingw32-gcc
+      CXX: x86_64-w64-mingw32-g++
+      CROSS_COMPILING: "true"
+      PKG_CONFIG: "false"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fix GitHub's mess
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update -qq
+          sudo apt-get install -yqq --allow-downgrades libgd3/focal libpcre2-8-0/focal libpcre2-16-0/focal libpcre2-32-0/focal libpcre2-posix2/focal
+          sudo apt-get purge -yqq libmono* moby* mono* php* libgdiplus libpcre2-posix3 libzip4
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
+      - name: make features
+        run: make features
+      - name: make
+        run: make WITH_LTO=true -j $(nproc)
