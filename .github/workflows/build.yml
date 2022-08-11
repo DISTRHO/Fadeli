@@ -106,63 +106,65 @@ jobs:
       - name: make
         run: make WITH_LTO=true -j $(nproc)
 
-  # FIXME need to provide faustpp for easier cross-compilation
-  #ubuntu-mingw-win32:
-    #runs-on: ubuntu-22.04
-    #env:
-      #AR: i686-w64-mingw32-ar
-      #CC: i686-w64-mingw32-gcc
-      #CXX: i686-w64-mingw32-g++
-      #CROSS_COMPILING: "true"
-      #PKG_CONFIG: "false"
-    #steps:
-      #- uses: actions/checkout@v2
-        #with:
-          #submodules: recursive
-      #- name: Set up cache
-        #id: cache
-        #uses: actions/cache@v2
-        #with:
-          #path: |
-            #build/faustpp
-            #faustpp
-          #key: ubuntu-mingw-win32-v${{ env.CACHE_VERSION }}
-      #- name: Set up dependencies
-        #run: |
-          #sudo dpkg --add-architecture i386
-          #sudo apt-get update -qq
-          #sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
-      #- name: make features
-        #run: make features
-      #- name: make
-        #run: make WITH_LTO=true -j $(nproc)
+  ubuntu-mingw-win32:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Set up cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/faustpp
+            faustpp
+          key: ubuntu-mingw-win32-v${{ env.CACHE_VERSION }}
+      - name: Set up dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
+      - name: make features
+        run: make features
+      - name: make faustpp
+        run: make faustpp -j $(nproc)
+      - name: make
+        env:
+          AR: i686-w64-mingw32-ar
+          CC: i686-w64-mingw32-gcc
+          CXX: i686-w64-mingw32-g++
+          CROSS_COMPILING: "true"
+          PKG_CONFIG: "false"
+        run: make WITH_LTO=true -j $(nproc)
 
-  # FIXME need to provide faustpp for easier cross-compilation
-  #ubuntu-mingw-win64:
-    #runs-on: ubuntu-22.04
-    #env:
-      #AR: x86_64-w64-mingw32-ar
-      #CC: x86_64-w64-mingw32-gcc
-      #CXX: x86_64-w64-mingw32-g++
-      #CROSS_COMPILING: "true"
-      #PKG_CONFIG: "false"
-    #steps:
-      #- uses: actions/checkout@v2
-        #with:
-          #submodules: recursive
-      #- name: Set up cache
-        #id: cache
-        #uses: actions/cache@v2
-        #with:
-          #path: |
-            #build/faustpp
-            #faustpp
-          #key: ubuntu-mingw-win64-v${{ env.CACHE_VERSION }}
-      #- name: Set up dependencies
-        #run: |
-          #sudo apt-get update -qq
-          #sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
-      #- name: make features
-        #run: make features
-      #- name: make
-        #run: make WITH_LTO=true -j $(nproc)
+  ubuntu-mingw-win64:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Set up cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/faustpp
+            faustpp
+          key: ubuntu-mingw-win64-v${{ env.CACHE_VERSION }}
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
+      - name: make features
+        run: make features
+      - name: make faustpp
+        run: make faustpp -j $(nproc)
+      - name: make
+        env:
+          AR: x86_64-w64-mingw32-ar
+          CC: x86_64-w64-mingw32-gcc
+          CXX: x86_64-w64-mingw32-g++
+          CROSS_COMPILING: "true"
+          PKG_CONFIG: "false"
+        run: make WITH_LTO=true -j $(nproc)
