@@ -28,15 +28,11 @@ FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
-faustpp: $(FAUSTPP_TARGET)
-
 # ---------------------------------------------------------------------------------------------------------------------
-# gen target, converting all faust dsp files into plugin code
+# list of plugin files to generate, converted from faust dsp files
 
 PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
 PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/%/$(f)))
-
-gen: $(PLUGIN_GENERATED_FILES)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # plugins target, for actual building the plugin stuff after it has been generated
@@ -46,7 +42,7 @@ define PLUGIN_BUILD
 
 endef
 
-plugins: gen
+plugins: $(PLUGIN_GENERATED_FILES)
 	$(foreach p,$(PLUGINS),$(call PLUGIN_BUILD,$(p)))
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -57,11 +53,11 @@ AS_LV2_URI = urn:fadeli:$(1)
 
 FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
 
-build/%/DistrhoPluginInfo.h: dsp/%.dsp faustpp
+build/%/DistrhoPluginInfo.h: dsp/%.dsp $(FAUSTPP_TARGET)
 	mkdir -p build/$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
 
-build/%/Plugin.cpp: dsp/%.dsp faustpp
+build/%/Plugin.cpp: dsp/%.dsp $(FAUSTPP_TARGET)
 	mkdir -p build/$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
 
@@ -89,5 +85,3 @@ build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
 	$(MAKE) -C build/faustpp
 
 # ---------------------------------------------------------------------------------------------------------------------
-
-.PHONY: faustpp
