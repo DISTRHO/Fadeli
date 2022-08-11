@@ -101,8 +101,6 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -yqq faust
-      - name: make features
-        run: make features
       - name: make
         run: make WITH_LTO=true -j $(nproc)
 
@@ -125,8 +123,6 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update -qq
           sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
-      - name: make features
-        run: make features
       - name: make faustpp
         run: make faustpp -j $(nproc)
       - name: make
@@ -136,7 +132,7 @@ jobs:
           CXX: i686-w64-mingw32-g++
           CROSS_COMPILING: "true"
           PKG_CONFIG: "false"
-        run: make WITH_LTO=true -j $(nproc)
+        run: make APP_EXT= WITH_LTO=true -j $(nproc)
 
   ubuntu-mingw-win64:
     runs-on: ubuntu-22.04
@@ -156,8 +152,6 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
-      - name: make features
-        run: make features
       - name: make faustpp
         run: make faustpp -j $(nproc)
       - name: make
@@ -167,4 +161,4 @@ jobs:
           CXX: x86_64-w64-mingw32-g++
           CROSS_COMPILING: "true"
           PKG_CONFIG: "false"
-        run: make WITH_LTO=true -j $(nproc)
+        run: make APP_EXT= WITH_LTO=true -j $(nproc)
