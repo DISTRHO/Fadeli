@@ -31,7 +31,7 @@ endif
 faustpp: $(FAUSTPP_TARGET)
 
 # ---------------------------------------------------------------------------------------------------------------------
-# gen target, finding all faust dsp files to convert into plugin code
+# gen target, converting all faust dsp files into plugin code
 
 PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
 PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/%/$(f)))

@@ -1,10 +1,5 @@
 # DPF-Fadeli
 
-Work-in-progress! It does not build/work yet.  
-Final expected readme contents follow after this message.
-
----
-
 An experiment with Faust Demo Library content as DPF plugins.
 
 Basically glueing a few different projects together:
