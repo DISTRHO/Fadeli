@@ -16,6 +16,8 @@ jobs:
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Set up dependencies
         run: |
           brew install faust
@@ -28,6 +30,8 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
@@ -41,6 +45,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
@@ -54,6 +60,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
@@ -73,6 +81,8 @@ jobs:
       PKG_CONFIG: "false"
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Fix GitHub's mess
         run: |
           sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
@@ -99,6 +109,8 @@ jobs:
       PKG_CONFIG: "false"
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Fix GitHub's mess
         run: |
           sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
