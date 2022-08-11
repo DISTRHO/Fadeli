@@ -53,11 +53,11 @@ AS_LV2_URI = urn:fadeli:$(1)
 
 FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
 
-build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp $(FAUSTPP_TARGET)
+build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h $(FAUSTPP_TARGET)
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
 
-build/fadeli-%/Plugin.cpp: dsp/%.dsp $(FAUSTPP_TARGET)
+build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp $(FAUSTPP_TARGET)
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
 

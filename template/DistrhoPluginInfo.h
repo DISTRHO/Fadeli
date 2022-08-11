@@ -5,6 +5,7 @@
 //
 // Source: {{file_name}}
 // Name: {{name}}
+// Description: {{description}}
 // Author: {{author}}
 // Copyright: {{copyright}}
 // License: {{license}}

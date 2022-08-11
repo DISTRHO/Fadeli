@@ -5,6 +5,7 @@
 //
 // Source: {{file_name}}
 // Name: {{name}}
+// Description: {{description}}
 // Author: {{author}}
 // Copyright: {{copyright}}
 // License: {{license}}
@@ -97,7 +98,7 @@ protected:
     */
     const char* getLabel() const override
     {
-        return "{{label}}";
+        return {{cstr(label)}};
     }
 
    /**
@@ -105,7 +106,7 @@ protected:
     */
     const char* getDescription() const override
     {
-        return "{{description}}";
+        return {{cstr(description)}};
     }
 
    /**
