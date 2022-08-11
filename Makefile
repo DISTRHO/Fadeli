@@ -28,11 +28,15 @@ FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
+faustpp: $(FAUSTPP_TARGET)
+
 # ---------------------------------------------------------------------------------------------------------------------
 # list of plugin source code files to generate, converted from faust dsp files
 
 PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
 PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/fadeli-%/$(f)))
+
+gen: $(PLUGIN_GENERATED_FILES)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # plugins target, for actual building the plugin stuff after its source code has been generated
