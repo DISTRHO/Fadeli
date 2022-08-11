@@ -6,17 +6,16 @@
 
 include dpf/Makefile.base.mk
 
-all: dsp
+all: plugins
+
+# plugin list comes from whatever faust dsp files we have around
+PLUGINS = $(subst dsp/,,$(subst .dsp,,$(wildcard dsp/*.dsp)))
 
 # ---------------------------------------------------------------------------------------------------------------------
-# dsp target, finding all faust dsp files to convert into plugin code
+# clean target, removes any build artifacts
 
-DSP_FILES = $(subst dsp/,,$(subst .dsp,,$(wildcard dsp/*.dsp)))
-
-PLUGIN_FILES  = $(DSP_FILES:%=build/%/Plugin.cpp)
-PLUGIN_FILES += $(DSP_FILES:%=build/%/Plugin.hpp)
-
-dsp: $(PLUGIN_FILES)
+clean:
+	rm -rf bin build
 
 # ---------------------------------------------------------------------------------------------------------------------
 # faustpp target, building it ourselves if not available from the system
@@ -32,22 +31,39 @@ endif
 faustpp: $(FAUSTPP_TARGET)
 
 # ---------------------------------------------------------------------------------------------------------------------
+# gen target, finding all faust dsp files to convert into plugin code
 
-clean:
-	rm -rf bin build
+PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
+PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/%/$(f)))
+
+gen: $(PLUGIN_GENERATED_FILES)
+
+# ---------------------------------------------------------------------------------------------------------------------
+# plugins target, for actual building the plugin stuff after it has been generated
+
+define PLUGIN_BUILD
+	$(MAKE) ladspa lv2_dsp vst2 vst3 -C build/$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
+
+endef
+
+plugins: gen
+	$(foreach p,$(PLUGINS),$(call PLUGIN_BUILD,$(p)))
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for faust dsp to plugin code conversion
 
-CONVERT_DASHES = $(shell echo $(1) | tr - _)
+AS_LABEL   = $(shell echo $(1) | tr - _)
+AS_LV2_URI = urn:fadeli:$(1)
+
+FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
+
+build/%/DistrhoPluginInfo.h: dsp/%.dsp faustpp
+	mkdir -p build/$*
+	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
 
 build/%/Plugin.cpp: dsp/%.dsp faustpp
 	mkdir -p build/$*
-	$(FAUSTPP_EXEC) -DIdentifier=$(call CONVERT_DASHES,$*) -a faustpp/architectures/generic.cpp $< > $@
-
-build/%/Plugin.hpp: dsp/%.dsp faustpp
-	mkdir -p build/$*
-	$(FAUSTPP_EXEC) -DIdentifier=$(call CONVERT_DASHES,$*) -a faustpp/architectures/generic.hpp $< > $@
+	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for custom faustpp build
@@ -74,4 +90,4 @@ build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-.PHONY: dsp faustpp
+.PHONY: faustpp
