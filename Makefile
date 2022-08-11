@@ -29,16 +29,16 @@ FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
 # ---------------------------------------------------------------------------------------------------------------------
-# list of plugin files to generate, converted from faust dsp files
+# list of plugin source code files to generate, converted from faust dsp files
 
 PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
-PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/%/$(f)))
+PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/fadeli-%/$(f)))
 
 # ---------------------------------------------------------------------------------------------------------------------
-# plugins target, for actual building the plugin stuff after it has been generated
+# plugins target, for actual building the plugin stuff after its source code has been generated
 
 define PLUGIN_BUILD
-	$(MAKE) ladspa lv2_dsp vst2 vst3 -C build/$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
+	$(MAKE) ladspa lv2_dsp vst2 vst3 -C build/fadeli-$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
 
 endef
 
@@ -53,12 +53,12 @@ AS_LV2_URI = urn:fadeli:$(1)
 
 FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
 
-build/%/DistrhoPluginInfo.h: dsp/%.dsp $(FAUSTPP_TARGET)
-	mkdir -p build/$*
+build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp $(FAUSTPP_TARGET)
+	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
 
-build/%/Plugin.cpp: dsp/%.dsp $(FAUSTPP_TARGET)
-	mkdir -p build/$*
+build/fadeli-%/Plugin.cpp: dsp/%.dsp $(FAUSTPP_TARGET)
+	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
