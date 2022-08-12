@@ -52,6 +52,7 @@ public:
     // dummy
     void openHorizontalBox(...) {}
     void openVerticalBox(...) {}
+    void openTabBox(...) {}
     void closeBox(...) {}
     void declare(...) {}
     void addButton(...) {}
@@ -76,12 +77,12 @@ START_NAMESPACE_DISTRHO
 
 // --------------------------------------------------------------------------------------------------------------------
 
-class FadeliPlugin : public Plugin
+class FaustGeneratedPlugin : public Plugin
 {
     ScopedPointer<mydsp> dsp;
 
 public:
-    FadeliPlugin()
+    FaustGeneratedPlugin()
         : Plugin(kParameterCount, kProgramCount, kStateCount)
     {
         dsp = new mydsp;
@@ -104,17 +105,17 @@ protected:
 
     const char* getMaker() const override
     {
-        return "DISTRHO";
+        return {{cstr(brand)}};
     }
 
     const char* getHomePage() const override
     {
-        return "https://github.com/DISTRHO/Fadeli";
+        return {{cstr(homepage)}};
     }
 
     const char* getLicense() const override
     {
-        return "{{meta.license}}";
+        return {{cstr(license)}};
     }
 
     uint32_t getVersion() const override
@@ -124,7 +125,7 @@ protected:
 
     int64_t getUniqueId() const override
     {
-        return d_cconst('d', 'F', 'i', 'H');
+        return d_cconst('F', 'I', 'X', 'M');
     }
 
    /* -----------------------------------------------------------------------------------------------------------------
@@ -189,7 +190,7 @@ protected:
             param.ranges.max = {{p.max}};
             break;
         {% endfor %}
-        {% for p in passive %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
+        {% for p in passive %}case kParameter{{p.meta.symbol|default("" ~ (active|length+loop.index))}}:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined %}
                 |kParameterIsBoolean
@@ -249,14 +250,14 @@ protected:
 
     // ----------------------------------------------------------------------------------------------------------------
 
-    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FadeliPlugin)
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaustGeneratedPlugin)
 };
 
 // --------------------------------------------------------------------------------------------------------------------
 
 Plugin* createPlugin()
 {
-    return new FadeliPlugin();
+    return new FaustGeneratedPlugin();
 }
 
 // --------------------------------------------------------------------------------------------------------------------

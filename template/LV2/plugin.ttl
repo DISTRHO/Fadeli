@@ -127,7 +127,6 @@
     ] ;
     {% endfor %}
 
-    doap:license <http://spdx.org/licenses/ISC.html> ;
     doap:name {{cstr(name)}} ;
 
     {% if author is defined %}
@@ -136,9 +135,13 @@
     ] ;
     {% endif %}
 
+    {% if licenseurl is defined %}
+    doap:license <{{licenseurl}}> ;
+    {% endif %}
+
     doap:maintainer [
-        foaf:name "DISTRHO" ;
-        foaf:homepage <https://github.com/DISTRHO/Fadeli> ;
+        foaf:name {{cstr(brand)}} ;
+        foaf:homepage <{{homepage}}> ;
     ] ;
 
     {% if meta.description is defined %}

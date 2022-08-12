@@ -70,7 +70,11 @@ AS_LV2_URI = urn:fadeli:$(1)
 
 FAUSTPP_ARGS = \
 	-Dbinary_name=fadeli-$(1) \
+	-Dbrand="DISTRHO" \
+	-Dhomepage="https://github.com/DISTRHO/Fadeli" \
 	-Dlabel=$(call AS_LABEL,$(1)) \
+	-Dlicense="ISC" \
+	-Dlicenseurl="http://spdx.org/licenses/ISC.html" \
 	-Dlibext=$(LIB_EXT) \
 	-Dlv2uri=$(call AS_LV2_URI,$(1)) \
 	-Dversion_major=$(VERSION_MAJOR) \
