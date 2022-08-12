@@ -8,13 +8,14 @@ on:
     branches:
       - '*'
 env:
-  CACHE_VERSION: 2
+  CACHE_VERSION: 4
   DEBIAN_FRONTEND: noninteractive
   HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
 
 jobs:
   linux-x86_64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -24,12 +25,19 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            *.deb
             build/faustpp/faustpp
           key: linux-x86_64-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev faust
+          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
+          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
+          sudo dpkg -i *.deb
+      - name: Build faustpp
+        run: make faustpp -j $(nproc)
       - name: Build linux x86_64
         env:
           LDFLAGS: -static-libgcc -static-libstdc++
@@ -75,10 +83,12 @@ jobs:
       - name: Set up dependencies
         run: |
           brew install faust
+      - name: Build faustpp
+        run: make faustpp -j $(sysctl -n hw.logicalcpu)
       - name: Build macOS universal
         env:
-          CFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
-          CXXFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
+          CFLAGS: -O3 -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
+          CXXFLAGS: -O3 -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
           LDFLAGS: -arch x86_64 -arch arm64 -mmacosx-version-min=10.12
         run: |
           make NOOPT=true WITH_LTO=true -j $(sysctl -n hw.logicalcpu)
@@ -106,7 +116,7 @@ jobs:
             ${{ github.event.repository.name }}-${{ github.ref_name }}-macOS.pkg
 
   win32:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -116,13 +126,18 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            *.deb
             build/faustpp/faustpp
           key: win32-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update -qq
-          sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
+          sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 libsndfile1 libmicrohttpd12
+          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
+          sudo dpkg -i *.deb
       - name: Build faustpp
         run: make faustpp -j $(nproc)
       - name: Build win32 cross-compiled
@@ -159,7 +174,7 @@ jobs:
             ${{ github.event.repository.name }}-${{ github.ref_name }}-win32.zip
 
   win64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -169,12 +184,17 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            *.deb
             build/faustpp/faustpp
           key: win64-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
+          sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 libsndfile1 libmicrohttpd12
+          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
+          sudo dpkg -i *.deb
       - name: Build faustpp
         run: make faustpp -j $(nproc)
       - name: Build win64 cross-compiled
@@ -211,7 +231,7 @@ jobs:
             ${{ github.event.repository.name }}-${{ github.ref_name }}-win64.zip
 
   plugin-validation:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -221,6 +241,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
+            *.deb
             build/faustpp/faustpp
           key: plugin-validation-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
@@ -230,9 +251,15 @@ jobs:
           sudo dpkg -i kxstudio-repos_11.1.0_all.deb
           sudo apt-get update -qq
           # build-deps
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev faust
+          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
+          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
+                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
+          sudo dpkg -i *.deb
           # runtime testing
           sudo apt-get install -yqq carla-git lilv-utils lv2-dev lv2lint valgrind
+      - name: Build faustpp
+        run: make faustpp -j $(nproc)
       - name: Build plugins
         env:
           CFLAGS: -g

@@ -57,6 +57,7 @@ public:
     void declare(...) {}
     void addButton(...) {}
     void addCheckButton(...) {}
+    void addNumEntry(...) {}
     void addVerticalSlider(...) {}
     void addHorizontalSlider(...) {}
     void addVerticalBargraph(...) {}
