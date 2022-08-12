@@ -28,7 +28,12 @@ FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
+# never rebuild faustpp
+ifeq ($(wildcard build/faustpp/faustpp$(APP_EXT)),)
 faustpp: $(FAUSTPP_TARGET)
+else
+faustpp:
+endif
 
 # ---------------------------------------------------------------------------------------------------------------------
 # list of plugin source code files to generate, converted from faust dsp files
@@ -57,11 +62,11 @@ AS_LV2_URI = urn:fadeli:$(1)
 
 FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
 
-build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h $(FAUSTPP_TARGET)
+build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h faustpp
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
 
-build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp $(FAUSTPP_TARGET)
+build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp faustpp
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
 
@@ -89,3 +94,5 @@ build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
 	$(MAKE) -C build/faustpp
 
 # ---------------------------------------------------------------------------------------------------------------------
+
+.PHONY: faustpp

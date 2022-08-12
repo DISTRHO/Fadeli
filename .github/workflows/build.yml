@@ -8,7 +8,7 @@ on:
     branches:
       - '*'
 env:
-  CACHE_VERSION: 1
+  CACHE_VERSION: 2
   DEBIAN_FRONTEND: noninteractive
   HOMEBREW_NO_AUTO_UPDATE: 1
 
@@ -24,8 +24,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            build/faustpp
-            faustpp
+            build/faustpp/faustpp
           key: macos-11-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
@@ -47,8 +46,7 @@ jobs:
         #uses: actions/cache@v2
         #with:
           #path: |
-            #build/faustpp
-            #faustpp
+            #build/faustpp/faustpp
           #key: ubuntu-18_04-v${{ env.CACHE_VERSION }}
       #- name: Set up dependencies
         #run: |
@@ -71,8 +69,7 @@ jobs:
         #uses: actions/cache@v2
         #with:
           #path: |
-            #build/faustpp
-            #faustpp
+            #build/faustpp/faustpp
           #key: ubuntu-20_04-v${{ env.CACHE_VERSION }}
       #- name: Set up dependencies
         #run: |
@@ -94,8 +91,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            build/faustpp
-            faustpp
+            build/faustpp/faustpp
           key: ubuntu-22_04-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
@@ -115,8 +111,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            build/faustpp
-            faustpp
+            build/faustpp/faustpp
           key: ubuntu-mingw-win32-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
@@ -145,8 +140,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            build/faustpp
-            faustpp
+            build/faustpp/faustpp
           key: ubuntu-mingw-win64-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
