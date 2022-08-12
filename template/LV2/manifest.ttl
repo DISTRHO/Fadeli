@@ -1,0 +1,4 @@
+<{{lv2uri}}>
+    a lv2:Plugin ;
+    lv2:binary <{{binary_name}}_dsp{{libext}}> ;
+    rdfs:seeAlso <plugin.ttl> .

@@ -106,7 +106,7 @@ protected:
     */
     const char* getDescription() const override
     {
-        return {{cstr(description)}};
+        return {{cstr(meta.description)}};
     }
 
    /**
@@ -131,7 +131,7 @@ protected:
     */
     const char* getLicense() const override
     {
-        return "{{license}}";
+        return "{{meta.license}}";
     }
 
    /**
@@ -164,8 +164,12 @@ protected:
          * 1 audio port means mono, 2 means stereo.
          */
         {% if inputs == outputs %}
-            {% if inputs == 1 %}port.groupId = kPortGroupMono;{% endif %}
-            {% if inputs == 2 %}port.groupId = kPortGroupStereo;{% endif %}
+            {% if inputs == 1 %}
+        port.groupId = kPortGroupMono;
+            {% endif %}
+            {% if inputs == 2 %}
+        port.groupId = kPortGroupStereo;
+            {% endif %}
         {% else %}
             {% if inputs == 1 %}
         if (input) port.groupId = kPortGroupMono;
@@ -194,11 +198,19 @@ protected:
         switch (index)
         {
         {% for p in active %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
-            param.hints = 0
-            {% if p.type == "button" or p.meta.trigger is defined %}|kParameterIsTrigger|kParameterIsInteger{% endif %}
-            {% if p.type == "checkbox" or p.meta.boolean is defined %}|kParameterIsBoolean|kParameterIsInteger{% endif %}
-            {% if p.meta.integer is defined %}|kParameterIsInteger{% endif %}
-            {% if p.scale == "log" %}|kParameterIsLogarithmic{% endif %}
+            param.hints = kParameterIsAutomatable
+            {% if p.type in ["button"] or p.meta.trigger is defined %}
+                |kParameterIsTrigger
+            {% endif %}
+            {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined %}
+                |kParameterIsBoolean
+            {% endif %}
+            {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined or p.meta.integer is defined %}
+                |kParameterIsInteger
+            {% endif %}
+            {% if p.scale == "log" %}
+                |kParameterIsLogarithmic
+            {% endif %}
             ;
             param.name = {{cstr(p.label)}};
             param.unit = {{cstr(p.unit)}};
@@ -210,13 +222,20 @@ protected:
             break;
         {% endfor %}
         {% for p in passive %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
-            param.hints = kParameterIsOutput
-            {% if p.meta.integer is defined %}|kParameterIsInteger{% endif %}
-            {% if p.scale == "log" %}|kParameterIsLogarithmic{% endif %}
+            param.hints = kParameterIsAutomatable|kParameterIsOutput
+            {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined %}
+                |kParameterIsBoolean
+            {% endif %}
+            {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined or p.meta.integer is defined %}
+                |kParameterIsInteger
+            {% endif %}
+            {% if p.scale == "log" %}
+                |kParameterIsLogarithmic
+            {% endif %}
             ;
             param.name = {{cstr(p.label)}};
             param.unit = {{cstr(p.unit)}};
-            param.symbol = {{cstr(cid(p.meta.symbol|default(p.label)))}};
+            param.symbol = {{cstr(cid(p.meta.symbol|default("lv2_port_" ~ loop.index0)))}};
             param.shortName = {{cstr(p.meta.abbrev|default(""))}};
             param.ranges.def = {{p.init}};
             param.ranges.min = {{p.min}};
@@ -273,7 +292,7 @@ protected:
     */
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
-        dsp->compute(frames, (float**)inputs, outputs);
+        dsp->compute(frames, const_cast<float**>(inputs), outputs);
     }
 
     // ----------------------------------------------------------------------------------------------------------------

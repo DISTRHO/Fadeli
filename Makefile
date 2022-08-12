@@ -31,6 +31,7 @@ endif
 # never rebuild faustpp
 ifeq ($(wildcard build/faustpp/faustpp$(APP_EXT)),)
 faustpp: $(FAUSTPP_TARGET)
+.PHONY: faustpp
 else
 faustpp:
 endif
@@ -38,8 +39,10 @@ endif
 # ---------------------------------------------------------------------------------------------------------------------
 # list of plugin source code files to generate, converted from faust dsp files
 
-PLUGIN_TEMPLATE_FILES  = $(subst template/,,$(wildcard template/*.*))
-PLUGIN_GENERATED_FILES = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/fadeli-%/$(f)))
+PLUGIN_TEMPLATE_FILES   = $(subst template/,,$(wildcard template/*.*))
+PLUGIN_GENERATED_FILES  = $(foreach f,$(PLUGIN_TEMPLATE_FILES),$(PLUGINS:%=build/fadeli-%/$(f)))
+PLUGIN_GENERATED_FILES += $(PLUGINS:%=bin/fadeli-%.lv2/manifest.ttl)
+PLUGIN_GENERATED_FILES += $(PLUGINS:%=bin/fadeli-%.lv2/plugin.ttl)
 
 gen: $(PLUGIN_GENERATED_FILES)
 
@@ -60,15 +63,23 @@ plugins: $(PLUGIN_GENERATED_FILES)
 AS_LABEL   = $(shell echo $(1) | tr - _)
 AS_LV2_URI = urn:fadeli:$(1)
 
-FAUSTPP_ARGS = -Dlabel=$(call AS_LABEL,$*) -Dlv2uri=$(call AS_LV2_URI,$*)
+FAUSTPP_ARGS = -Dbinary_name=fadeli-$(1) -Dlabel=$(call AS_LABEL,$(1)) -Dlibext=$(LIB_EXT) -Dlv2uri=$(call AS_LV2_URI,$(1))
+
+bin/fadeli-%.lv2/manifest.ttl: dsp/%.dsp template/LV2/manifest.ttl faustpp
+	mkdir -p bin/fadeli-$*.lv2
+	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/LV2/manifest.ttl $< -o $@
+
+bin/fadeli-%.lv2/plugin.ttl: dsp/%.dsp template/LV2/plugin.ttl faustpp
+	mkdir -p bin/fadeli-$*.lv2
+	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/LV2/plugin.ttl $< -o $@
 
 build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h faustpp
 	mkdir -p build/fadeli-$*
-	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/DistrhoPluginInfo.h $< -o $@
+	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/DistrhoPluginInfo.h $< -o $@
 
 build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp faustpp
 	mkdir -p build/fadeli-$*
-	$(FAUSTPP_EXEC) $(FAUSTPP_ARGS) -a template/Plugin.cpp $< -o $@
+	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/Plugin.cpp $< -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for custom faustpp build
@@ -94,5 +105,3 @@ build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
 	$(MAKE) -C build/faustpp
 
 # ---------------------------------------------------------------------------------------------------------------------
-
-.PHONY: faustpp
