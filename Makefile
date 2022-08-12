@@ -11,6 +11,11 @@ all: plugins
 # plugin list comes from whatever faust dsp files we have around
 PLUGINS = $(subst dsp/,,$(subst .dsp,,$(wildcard dsp/*.dsp)))
 
+# define project version, globally set the same for all generated plugins
+VERSION_MAJOR = 0
+VERSION_MINOR = 0
+VERSION_MICRO = 1
+
 # ---------------------------------------------------------------------------------------------------------------------
 # clean target, removes any build artifacts
 
@@ -63,7 +68,14 @@ plugins: $(PLUGIN_GENERATED_FILES)
 AS_LABEL   = $(shell echo $(1) | tr - _)
 AS_LV2_URI = urn:fadeli:$(1)
 
-FAUSTPP_ARGS = -Dbinary_name=fadeli-$(1) -Dlabel=$(call AS_LABEL,$(1)) -Dlibext=$(LIB_EXT) -Dlv2uri=$(call AS_LV2_URI,$(1))
+FAUSTPP_ARGS = \
+	-Dbinary_name=fadeli-$(1) \
+	-Dlabel=$(call AS_LABEL,$(1)) \
+	-Dlibext=$(LIB_EXT) \
+	-Dlv2uri=$(call AS_LV2_URI,$(1)) \
+	-Dversion_major=$(VERSION_MAJOR) \
+	-Dversion_minor=$(VERSION_MINOR) \
+	-Dversion_micro=$(VERSION_MICRO)
 
 bin/fadeli-%.lv2/manifest.ttl: dsp/%.dsp template/LV2/manifest.ttl faustpp
 	mkdir -p bin/fadeli-$*.lv2

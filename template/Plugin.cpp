@@ -92,60 +92,36 @@ protected:
    /* -----------------------------------------------------------------------------------------------------------------
     * Information */
 
-   /**
-      Get the plugin label.
-      This label is a short restricted name consisting of only _, a-z, A-Z and 0-9 characters.
-    */
     const char* getLabel() const override
     {
         return {{cstr(label)}};
     }
 
-   /**
-      Get an extensive comment/description about the plugin.
-    */
     const char* getDescription() const override
     {
         return {{cstr(meta.description)}};
     }
 
-   /**
-      Get the plugin author/maker.
-    */
     const char* getMaker() const override
     {
         return "DISTRHO";
     }
 
-   /**
-      Get the plugin homepage.
-    */
     const char* getHomePage() const override
     {
         return "https://github.com/DISTRHO/Fadeli";
     }
 
-   /**
-      Get the plugin license name (a single line of text).
-      For commercial plugins this should return some short copyright information.
-    */
     const char* getLicense() const override
     {
         return "{{meta.license}}";
     }
 
-   /**
-      Get the plugin version, in hexadecimal.
-    */
     uint32_t getVersion() const override
     {
-        return d_version(0, 0, 0);
+        return d_version({{version_major}}, {{version_minor}}, {{version_micro}});
     }
 
-   /**
-      Get the plugin unique Id.
-      This value is used by LADSPA, DSSI and VST plugin formats.
-    */
     int64_t getUniqueId() const override
     {
         return d_cconst('d', 'F', 'i', 'H');
@@ -154,11 +130,7 @@ protected:
    /* -----------------------------------------------------------------------------------------------------------------
     * Init */
 
-   /**
-      Initialize the audio port @a index.@n
-      This function will be called once, shortly after the plugin is created.
-    */
-    void initAudioPort(bool input, uint32_t index, AudioPort& port) override
+    void initAudioPort(const bool input, const uint32_t index, AudioPort& port) override
     {
         /* make assumptions related to IO.
          * 1 audio port means mono, 2 means stereo.
@@ -189,11 +161,7 @@ protected:
         Plugin::initAudioPort(input, index, port);
     }
 
-   /**
-      Initialize the parameter @a index.
-      This function will be called once, shortly after the plugin is created.
-    */
-    void initParameter(uint32_t index, Parameter& param) override
+    void initParameter(const uint32_t index, Parameter& param) override
     {
         switch (index)
         {
@@ -248,12 +216,7 @@ protected:
    /* -----------------------------------------------------------------------------------------------------------------
     * Internal data */
 
-   /**
-      Get the current value of a parameter.
-      The host may call this function from any context, including realtime processing.
-      We have no parameters in this plugin example, so we do nothing with the function.
-    */
-    float getParameterValue(uint32_t index) const override
+    float getParameterValue(const uint32_t index) const override
     {
         switch (index)
         {
@@ -265,14 +228,7 @@ protected:
         }
     }
 
-   /**
-      Change a parameter value.@n
-      The host may call this function from any context, including realtime processing.
-
-      This function will only be called for parameter inputs.
-      Since we have no parameters inputs in this example, so we do nothing with the function.
-    */
-    void setParameterValue(uint32_t index, float value) override
+    void setParameterValue(const uint32_t index, const float value) override
     {
         switch (index)
         {
@@ -286,25 +242,17 @@ protected:
    /* -----------------------------------------------------------------------------------------------------------------
     * Audio/MIDI Processing */
 
-   /**
-      Run/process function for plugins without MIDI input.
-      @note Some parameters might be null if there are no audio inputs or outputs.
-    */
-    void run(const float** inputs, float** outputs, uint32_t frames) override
+    void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
         dsp->compute(frames, const_cast<float**>(inputs), outputs);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
 
-   /**
-      Set our plugin class as non-copyable and add a leak detector just in case.
-    */
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FadeliPlugin)
 };
 
-/* --------------------------------------------------------------------------------------------------------------------
- * Plugin entry point, called by DPF to create a new plugin instance. */
+// --------------------------------------------------------------------------------------------------------------------
 
 Plugin* createPlugin()
 {

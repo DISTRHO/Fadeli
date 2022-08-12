@@ -1,18 +1,11 @@
-@prefix bufsize: <http://lv2plug.in/ns/ext/buf-size> .
+@prefix bufsize: <http://lv2plug.in/ns/ext/buf-size#> .
 @prefix doap:    <http://usefulinc.com/ns/doap#> .
 @prefix foaf:    <http://xmlns.com/foaf/0.1/> .
 @prefix lv2:     <http://lv2plug.in/ns/lv2core#> .
 @prefix opts:    <http://lv2plug.in/ns/ext/options#> .
 @prefix pg:      <http://lv2plug.in/ns/ext/port-groups#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-# @prefix spdx:  <http://spdx.org/rdf/terms#> .
-@prefix unit:  <http://lv2plug.in/ns/extensions/units#> .
-
-### TODO
-# category
-# param shortname
-# convert license
-# version
+@prefix unit:    <http://lv2plug.in/ns/extensions/units#> .
 
 {% if inputs == 1 or outputs == 1 %}
 <{{lv2uri}}#portGroup_dpf_mono>
@@ -134,6 +127,7 @@
     ] ;
     {% endfor %}
 
+    doap:license <http://spdx.org/licenses/ISC.html> ;
     doap:name {{cstr(name)}} ;
 
     {% if author is defined %}
@@ -147,13 +141,9 @@
         foaf:homepage <https://github.com/DISTRHO/Fadeli> ;
     ] ;
 
-    {% if meta.author is defined %}
-    doap:license {{cstr(meta.license)}} ;
-    {% endif %}
-
     {% if meta.description is defined %}
     rdfs:comment {{cstr(meta.description)}} ;
     {% endif %}
 
-    lv2:microVersion 0 ;
-    lv2:minorVersion 0 .
+    lv2:microVersion {{version_minor}} ;
+    lv2:minorVersion {{version_micro}} .
