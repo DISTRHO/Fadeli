@@ -13,6 +13,52 @@ env:
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
+  linux-x86_64:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Set up cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            build/faustpp/faustpp
+          key: linux-x86_64-v${{ env.CACHE_VERSION }}
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev faust
+      - name: Build linux x86_64
+        env:
+          LDFLAGS: -static-libgcc -static-libstdc++
+        run: |
+          make WITH_LTO=true -j $(nproc)
+      - name: Set sha8
+        id: slug
+        run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-linux-x86_64-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+          path: |
+            bin/*
+      - name: Create release archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tar chJf ${{ github.event.repository.name }}-${{ github.ref_name }}-linux-x86_64.tar.xz \
+              --transform="s,^bin/,${{ github.event.repository.name }}-${{ github.ref_name }}/," \
+              bin/*
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.event.repository.name }}-${{ github.ref_name }}-linux-x86_64.tar.xz
+
   macos-11:
     runs-on: macos-11
     steps:
@@ -29,76 +75,35 @@ jobs:
       - name: Set up dependencies
         run: |
           brew install faust
-      - name: make features
-        run: make features
-      - name: make
-        run: make WITH_LTO=true -j $(sysctl -n hw.logicalcpu)
-
-  # FIXME need to update provided faust binaries
-  #ubuntu-18_04:
-    #runs-on: ubuntu-18.04
-    #steps:
-      #- uses: actions/checkout@v2
-        #with:
-          #submodules: recursive
-      #- name: Set up cache
-        #id: cache
-        #uses: actions/cache@v2
-        #with:
-          #path: |
-            #build/faustpp/faustpp
-          #key: ubuntu-18_04-v${{ env.CACHE_VERSION }}
-      #- name: Set up dependencies
-        #run: |
-          #sudo apt-get update -qq
-          #sudo apt-get install -yqq faust
-      #- name: make features
-        #run: make features
-      #- name: make
-        #run: make WITH_LTO=true -j $(nproc)
-
-  # FIXME need to update provided faust binaries
-  #ubuntu-20_04:
-    #runs-on: ubuntu-20.04
-    #steps:
-      #- uses: actions/checkout@v2
-        #with:
-          #submodules: recursive
-      #- name: Set up cache
-        #id: cache
-        #uses: actions/cache@v2
-        #with:
-          #path: |
-            #build/faustpp/faustpp
-          #key: ubuntu-20_04-v${{ env.CACHE_VERSION }}
-      #- name: Set up dependencies
-        #run: |
-          #sudo apt-get update -qq
-          #sudo apt-get install -yqq faust
-      #- name: make features
-        #run: make features
-      #- name: make
-        #run: make WITH_LTO=true -j $(nproc)
-
-  ubuntu-22_04:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Set up cache
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            build/faustpp/faustpp
-          key: ubuntu-22_04-v${{ env.CACHE_VERSION }}
-      - name: Set up dependencies
+      - name: Build macOS universal
+        env:
+          CFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
+          CXXFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -mmacosx-version-min=10.12 -mtune=generic -msse -msse2
+          LDFLAGS: -arch x86_64 -arch arm64 -mmacosx-version-min=10.12
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq faust
-      - name: make
-        run: make WITH_LTO=true -j $(nproc)
+          make NOOPT=true WITH_LTO=true -j $(sysctl -n hw.logicalcpu)
+          ./dpf/utils/package-osx-bundles.sh
+      - name: Set sha8
+        id: slug
+        run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-macOS-universal-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+          path: |
+            *-macOS.pkg
+      - name: Create release archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mv *-macOS.pkg ${{ github.event.repository.name }}-${{ github.ref_name }}-macOS.pkg
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.event.repository.name }}-${{ github.ref_name }}-macOS.pkg
 
   ubuntu-mingw-win32:
     runs-on: ubuntu-22.04
@@ -118,18 +123,44 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update -qq
           sudo apt-get install -yqq binutils-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64 faust
-      - name: make faustpp
+      - name: Build faustpp
         run: make faustpp -j $(nproc)
-      - name: make
+      - name: Build win32 cross-compiled
         env:
           AR: i686-w64-mingw32-ar
           CC: i686-w64-mingw32-gcc
           CXX: i686-w64-mingw32-g++
           CROSS_COMPILING: "true"
           PKG_CONFIG: "false"
-        run: make APP_EXT= WITH_LTO=true -j $(nproc)
+        run: |
+          make APP_EXT= WITH_LTO=true -j $(nproc)
+      - name: Set sha8
+        id: slug
+        run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-win32-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+          path: |
+            bin/*
+            !bin/*-ladspa.dll
+            !bin/*-dssi.dll
+      - name: Create release archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mv bin ${{ github.event.repository.name }}-${{ github.ref_name }}
+          zip -r -9 build.zip ${{ github.event.repository.name }}-${{ github.ref_name }}/* -x ${{ github.event.repository.name }}-${{ github.ref_name }}/*-ladspa.dll -x ${{ github.event.repository.name }}-${{ github.ref_name }}/*-dssi.dll
+          mv build.zip ${{ github.event.repository.name }}-${{ github.ref_name }}-win32.zip
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.event.repository.name }}-${{ github.ref_name }}-win32.zip
 
-  ubuntu-mingw-win64:
+  win64:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
@@ -141,21 +172,47 @@ jobs:
         with:
           path: |
             build/faustpp/faustpp
-          key: ubuntu-mingw-win64-v${{ env.CACHE_VERSION }}
+          key: win64-v${{ env.CACHE_VERSION }}
       - name: Set up dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 faust
-      - name: make faustpp
+      - name: Build faustpp
         run: make faustpp -j $(nproc)
-      - name: make
+      - name: Build win64 cross-compiled
         env:
           AR: x86_64-w64-mingw32-ar
           CC: x86_64-w64-mingw32-gcc
           CXX: x86_64-w64-mingw32-g++
           CROSS_COMPILING: "true"
           PKG_CONFIG: "false"
-        run: make APP_EXT= WITH_LTO=true -j $(nproc)
+        run: |
+          make APP_EXT= WITH_LTO=true -j $(nproc)
+      - name: Set sha8
+        id: slug
+        run: echo "::set-output name=sha8::$(echo ${{ github.sha }} | cut -c1-8)"
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-win64-${{ github.event.pull_request.number || steps.slug.outputs.sha8 }}
+          path: |
+            bin/*
+            !bin/*-ladspa.dll
+            !bin/*-dssi.dll
+      - name: Create release archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mv bin ${{ github.event.repository.name }}-${{ github.ref_name }}
+          zip -r -9 build.zip ${{ github.event.repository.name }}-${{ github.ref_name }}/* -x ${{ github.event.repository.name }}-${{ github.ref_name }}/*-ladspa.dll -x ${{ github.event.repository.name }}-${{ github.ref_name }}/*-dssi.dll
+          mv build.zip ${{ github.event.repository.name }}-${{ github.ref_name }}-win64.zip
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.event.repository.name }}-${{ github.ref_name }}-win64.zip
 
   plugin-validation:
     runs-on: ubuntu-22.04
@@ -180,78 +237,77 @@ jobs:
           sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev faust
           # runtime testing
           sudo apt-get install -yqq carla-git lilv-utils lv2-dev lv2lint valgrind
-      - name: Build plugins
+      - name: make
         env:
           CFLAGS: -g
           CXXFLAGS: -g -DDPF_ABORT_ON_ERROR
           LDFLAGS: -static-libgcc -static-libstdc++
         run: |
-          make features
           make NOOPT=true SKIP_STRIPPING=true -j $(nproc)
-      - name: Validate LV2 ttl syntax
-        run: |
-          lv2_validate ./bin/*.lv2/*.ttl
-      - name: Validate LV2 metadata and binaries
-        run: |
-          export LV2_PATH=/tmp/lv2-path
-          mkdir ${LV2_PATH}
-          cp -r bin/*.lv2 \
-              /usr/lib/lv2/{atom,buf-size,core,data-access,instance-access,midi,parameters,port-groups,port-props,options,patch,presets,resize-port,state,time,ui,units,urid,worker}.lv2 \
-              ${LV2_PATH}
-          lv2lint -s lv2_generate_ttl -l ld-linux-x86-64.so.2 -M nopack $(lv2ls)
-      - name: Test LADSPA plugins
-        run: |
-            for p in $(ls bin/ | grep ladspa.so); do \
-                env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
-                    valgrind \
-                    --error-exitcode=255 \
-                    --leak-check=full \
-                    --track-origins=yes \
-                    --suppressions=./dpf/utils/valgrind-dpf.supp \
-                    /usr/lib/carla/carla-bridge-native ladspa ./bin/${p} "" 1>/dev/null; \
-            done
-      - name: Test DSSI plugins
-        run: |
-            for p in $(ls bin/ | grep dssi.so); do \
-                env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
-                    valgrind \
-                    --error-exitcode=255 \
-                    --leak-check=full \
-                    --track-origins=yes \
-                    --suppressions=./dpf/utils/valgrind-dpf.supp \
-                    /usr/lib/carla/carla-bridge-native dssi ./bin/${p} "" 1>/dev/null; \
-            done
-      - name: Test LV2 plugins
-        run: |
-            export LV2_PATH=/tmp/lv2-path
-            for p in $(lv2ls); do \
-                env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
-                    valgrind \
-                    --error-exitcode=255 \
-                    --leak-check=full \
-                    --track-origins=yes \
-                    --suppressions=./dpf/utils/valgrind-dpf.supp \
-                    /usr/lib/carla/carla-bridge-native lv2 "" ${p} 1>/dev/null; \
-            done
-      - name: Test VST2 plugins
-        run: |
-            for p in $(find bin/ | grep -e vst.so -e '.*\.vst/.*\.so'); do \
-                env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
-                    valgrind \
-                    --error-exitcode=255 \
-                    --leak-check=full \
-                    --track-origins=yes \
-                    --suppressions=./dpf/utils/valgrind-dpf.supp \
-                    /usr/lib/carla/carla-bridge-native vst2 ./${p} "" 1>/dev/null; \
-            done
-      - name: Test VST3 plugins
-        run: |
-            for p in $(ls bin/ | grep vst3); do \
-                env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
-                    valgrind \
-                    --error-exitcode=255 \
-                    --leak-check=full \
-                    --track-origins=yes \
-                    --suppressions=./dpf/utils/valgrind-dpf.supp \
-                    /usr/lib/carla/carla-bridge-native vst3 ./bin/${p} "" 1>/dev/null; \
-            done
+      # - name: Validate LV2 ttl syntax
+      #   run: |
+      #     lv2_validate ./bin/*.lv2/*.ttl
+      # - name: Validate LV2 metadata and binaries
+      #   run: |
+      #     export LV2_PATH=/tmp/lv2-path
+      #     mkdir ${LV2_PATH}
+      #     cp -r bin/*.lv2 \
+      #         /usr/lib/lv2/{atom,buf-size,core,data-access,instance-access,midi,parameters,port-groups,port-props,options,patch,presets,resize-port,state,time,ui,units,urid,worker}.lv2 \
+      #         ${LV2_PATH}
+      #     lv2lint -s lv2_generate_ttl -l ld-linux-x86-64.so.2 -M nopack $(lv2ls)
+      # - name: Test LADSPA plugins
+      #   run: |
+      #       for p in $(ls bin/ | grep ladspa.so); do \
+      #           env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
+      #               valgrind \
+      #               --error-exitcode=255 \
+      #               --leak-check=full \
+      #               --track-origins=yes \
+      #               --suppressions=./dpf/utils/valgrind-dpf.supp \
+      #               /usr/lib/carla/carla-bridge-native ladspa ./bin/${p} "" 1>/dev/null; \
+      #       done
+      # - name: Test DSSI plugins
+      #   run: |
+      #       for p in $(ls bin/ | grep dssi.so); do \
+      #           env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
+      #               valgrind \
+      #               --error-exitcode=255 \
+      #               --leak-check=full \
+      #               --track-origins=yes \
+      #               --suppressions=./dpf/utils/valgrind-dpf.supp \
+      #               /usr/lib/carla/carla-bridge-native dssi ./bin/${p} "" 1>/dev/null; \
+      #       done
+      # - name: Test LV2 plugins
+      #   run: |
+      #       export LV2_PATH=/tmp/lv2-path
+      #       for p in $(lv2ls); do \
+      #           env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
+      #               valgrind \
+      #               --error-exitcode=255 \
+      #               --leak-check=full \
+      #               --track-origins=yes \
+      #               --suppressions=./dpf/utils/valgrind-dpf.supp \
+      #               /usr/lib/carla/carla-bridge-native lv2 "" ${p} 1>/dev/null; \
+      #       done
+      # - name: Test VST2 plugins
+      #   run: |
+      #       for p in $(find bin/ | grep -e vst.so -e '.*\.vst/.*\.so'); do \
+      #           env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
+      #               valgrind \
+      #               --error-exitcode=255 \
+      #               --leak-check=full \
+      #               --track-origins=yes \
+      #               --suppressions=./dpf/utils/valgrind-dpf.supp \
+      #               /usr/lib/carla/carla-bridge-native vst2 ./${p} "" 1>/dev/null; \
+      #       done
+      # - name: Test VST3 plugins
+      #   run: |
+      #       for p in $(ls bin/ | grep vst3); do \
+      #           env CARLA_BRIDGE_DUMMY=1 CARLA_BRIDGE_TESTING=native \
+      #               valgrind \
+      #               --error-exitcode=255 \
+      #               --leak-check=full \
+      #               --track-origins=yes \
+      #               --suppressions=./dpf/utils/valgrind-dpf.supp \
+      #               /usr/lib/carla/carla-bridge-native vst3 ./bin/${p} "" 1>/dev/null; \
+      #       done
