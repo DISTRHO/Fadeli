@@ -104,7 +104,6 @@ CMAKE_ARGS += -DCMAKE_BUILD_TYPE=Release
 endif
 ifeq ($(WINDOWS),true)
 CMAKE_ARGS += -DCMAKE_SYSTEM_NAME=Windows
-# -DCMAKE_CROSSCOMPILING=ON
 endif
 
 faustpp/CMakeLists.txt:
