@@ -21,8 +21,9 @@
 
 #pragma once
 
-#define DISTRHO_PLUGIN_NAME {{cstr(name)}}
-#define DISTRHO_PLUGIN_URI  {{cstr(lv2uri)}}
+#define DISTRHO_PLUGIN_NAME    {{cstr(name)}}
+#define DISTRHO_PLUGIN_URI     {{cstr(lv2uri)}}
+#define DISTRHO_PLUGIN_CLAP_ID {{cstr(clapid)}}
 
 #define DISTRHO_PLUGIN_HAS_UI          0
 #define DISTRHO_PLUGIN_IS_RT_SAFE      1
