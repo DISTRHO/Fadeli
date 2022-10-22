@@ -11,7 +11,7 @@ Basically glueing a few different projects together:
 
 Any faust file placed in the `dsp/` directory is automatically added as part of the build.  
 The template files in `template/` directory are passed through `faustpp` that converts the faust dsp file into a buildable DPF-based audio plugin.  
-Then DPF takes care of the rest, producing LADSPA, LV2, VST2 and VST3 plugins in one go.
+Then DPF takes care of the rest, producing CLAP, LADSPA, LV2, VST2 and VST3 plugins in one go.
 
 While it might be tempting, please do not bother packaging this repository and plugin set.  
 It really only serves as a demo and showcase for DPF and faustpp.  
