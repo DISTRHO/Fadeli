@@ -9,6 +9,8 @@ Basically glueing a few different projects together:
 3. [faustpp](https://github.com/jpcima/faustpp)
 4. [faust examples](https://faustdoc.grame.fr/examples/reverb/)
 
+Be sure to clone the repository with all submodules using the `git clone --recursive <repo.git>` command.
+
 Any faust file placed in the `dsp/` directory is automatically added as part of the build.  
 The template files in `template/` directory are passed through `faustpp` that converts the faust dsp file into a buildable DPF-based audio plugin.  
 Then DPF takes care of the rest, producing CLAP, LADSPA, LV2, VST2 and VST3 plugins in one go.
