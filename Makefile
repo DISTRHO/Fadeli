@@ -33,14 +33,6 @@ FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
-# never rebuild faustpp
-ifeq ($(wildcard build/faustpp/faustpp$(APP_EXT)),)
-faustpp: $(FAUSTPP_TARGET)
-.PHONY: faustpp
-else
-faustpp:
-endif
-
 # ---------------------------------------------------------------------------------------------------------------------
 # list of plugin source code files to generate, converted from faust dsp files
 
@@ -60,7 +52,7 @@ define PLUGIN_BUILD
 endef
 
 plugins: $(PLUGIN_GENERATED_FILES)
-	$(foreach p,$(PLUGINS),$(call PLUGIN_BUILD,$(p)))
+	+$(foreach p,$(PLUGINS),$(call PLUGIN_BUILD,$(p)))
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for faust dsp to plugin code conversion
@@ -83,19 +75,19 @@ FAUSTPP_ARGS = \
 	-Dversion_minor=$(VERSION_MINOR) \
 	-Dversion_micro=$(VERSION_MICRO)
 
-bin/fadeli-%.lv2/manifest.ttl: dsp/%.dsp template/LV2/manifest.ttl faustpp
+bin/fadeli-%.lv2/manifest.ttl: dsp/%.dsp template/LV2/manifest.ttl $(FAUSTPP_TARGET)
 	mkdir -p bin/fadeli-$*.lv2
 	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/LV2/manifest.ttl $< -o $@
 
-bin/fadeli-%.lv2/plugin.ttl: dsp/%.dsp template/LV2/plugin.ttl faustpp
+bin/fadeli-%.lv2/plugin.ttl: dsp/%.dsp template/LV2/plugin.ttl $(FAUSTPP_TARGET)
 	mkdir -p bin/fadeli-$*.lv2
 	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/LV2/plugin.ttl $< -o $@
 
-build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h faustpp
+build/fadeli-%/DistrhoPluginInfo.h: dsp/%.dsp template/DistrhoPluginInfo.h $(FAUSTPP_TARGET)
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/DistrhoPluginInfo.h $< -o $@
 
-build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp faustpp
+build/fadeli-%/Plugin.cpp: dsp/%.dsp template/Plugin.cpp $(FAUSTPP_TARGET)
 	mkdir -p build/fadeli-$*
 	$(FAUSTPP_EXEC) $(call FAUSTPP_ARGS,$*) -a template/Plugin.cpp $< -o $@
 
@@ -118,7 +110,7 @@ faustpp/CMakeLists.txt:
 build/faustpp/Makefile: faustpp/CMakeLists.txt
 	cmake -Bbuild/faustpp -Sfaustpp -DFAUSTPP_USE_INTERNAL_BOOST=ON $(CMAKE_ARGS)
 
-build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
+$(FAUSTPP_TARGET): build/faustpp/Makefile
 	$(MAKE) -C build/faustpp
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -148,5 +148,5 @@
     rdfs:comment {{cstr(meta.description)}} ;
     {% endif %}
 
-    lv2:microVersion {{version_minor}} ;
-    lv2:minorVersion {{version_micro}} .
+    lv2:microVersion {{version_minor|default(0)}} ;
+    lv2:minorVersion {{version_micro|default(0)}} .
