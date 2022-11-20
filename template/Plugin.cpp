@@ -88,6 +88,10 @@ public:
     {
         dsp = new mydsp;
         dsp->init(getSampleRate());
+
+        // passive controls are only updated on first run, make sure they have valid values now
+        {% for p in passive %}dsp->{{p.var}} = {{p.init}};
+        {% endfor %}
     }
 
 protected:
@@ -121,12 +125,12 @@ protected:
 
     uint32_t getVersion() const override
     {
-        return d_version({{version_major}}, {{version_minor}}, {{version_micro}});
+        return d_version({{version_major|default(0)}}, {{version_minor|default(0)}}, {{version_micro|default(0)}});
     }
 
     int64_t getUniqueId() const override
     {
-        return d_cconst('F', 'I', 'X', 'M');
+        return d_cconst('F', 'I', 'X', 'M'); // FIXME
     }
 
    /* -----------------------------------------------------------------------------------------------------------------
@@ -167,7 +171,7 @@ protected:
     {
         switch (index)
         {
-        {% for p in active %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
+        {% for p in active %}case kParameter_{{p.meta.symbol|default("" ~ loop.index)}}:
             param.hints = kParameterIsAutomatable
             {% if p.type in ["button"] or p.meta.trigger is defined %}
                 |kParameterIsTrigger
@@ -182,16 +186,16 @@ protected:
                 |kParameterIsLogarithmic
             {% endif %}
             ;
-            param.name = {{cstr(p.label)}};
-            param.unit = {{cstr(p.unit)}};
-            param.symbol = {{cstr(cid(p.meta.symbol|default(p.label)))}};
+            param.name = kParameterNames[{{loop.index0}}];
+            param.unit = kParameterUnits[{{loop.index0}}];
+            param.symbol = kParameterSymbols[{{loop.index0}}];
             param.shortName = {{cstr(p.meta.abbrev|default(""))}};
-            param.ranges.def = {{p.init}};
-            param.ranges.min = {{p.min}};
-            param.ranges.max = {{p.max}};
+            param.ranges.def = kParameterRanges[{{loop.index0}}].def;
+            param.ranges.min = kParameterRanges[{{loop.index0}}].min;
+            param.ranges.max = kParameterRanges[{{loop.index0}}].max;
             break;
         {% endfor %}
-        {% for p in passive %}case kParameter{{p.meta.symbol|default("" ~ (active|length+loop.index))}}:
+        {% for p in passive %}case kParameter_{{p.meta.symbol|default("" ~ (active|length+loop.index))}}:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             {% if p.type in ["button", "checkbox"] or p.meta.boolean is defined %}
                 |kParameterIsBoolean
@@ -203,13 +207,13 @@ protected:
                 |kParameterIsLogarithmic
             {% endif %}
             ;
-            param.name = {{cstr(p.label)}};
-            param.unit = {{cstr(p.unit)}};
-            param.symbol = {{cstr(cid(p.meta.symbol|default("lv2_port_" ~ loop.index0)))}};
+            param.name = kParameterNames[{{active|length+loop.index0}}];
+            param.unit = kParameterUnits[{{active|length+loop.index0}}];
+            param.symbol = kParameterSymbols[{{active|length+loop.index0}}];
             param.shortName = {{cstr(p.meta.abbrev|default(""))}};
-            param.ranges.def = {{p.init}};
-            param.ranges.min = {{p.min}};
-            param.ranges.max = {{p.max}};
+            param.ranges.def = kParameterRanges[{{active|length+loop.index0}}].def;
+            param.ranges.min = kParameterRanges[{{active|length+loop.index0}}].min;
+            param.ranges.max = kParameterRanges[{{active|length+loop.index0}}].max;
             break;
         {% endfor %}
         }
@@ -222,7 +226,7 @@ protected:
     {
         switch (index)
         {
-        {% for p in active + passive %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
+        {% for p in active + passive %}case kParameter_{{p.meta.symbol|default("" ~ loop.index)}}:
             return dsp->{{p.var}};
         {% endfor %}
         default:
@@ -234,7 +238,7 @@ protected:
     {
         switch (index)
         {
-        {% for p in active + passive %}case kParameter{{p.meta.symbol|default("" ~ loop.index)}}:
+        {% for p in active %}case kParameter_{{p.meta.symbol|default("" ~ loop.index)}}:
             dsp->{{p.var}} = value;
             break;
         {% endfor %}
@@ -247,6 +251,22 @@ protected:
     void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
         dsp->compute(frames, const_cast<float**>(inputs), outputs);
+    }
+
+    void sampleRateChanged(const double newSampleRate) override
+    {
+        // retrieve parameter info first
+        float params[{{ active|length }}] = {
+            {% for p in active %}dsp->{{p.var}},
+            {% endfor %}
+        };
+
+        // tell dsp to change sample rate
+        dsp->init(newSampleRate);
+
+        // set parameters back, which have been reset in the dsp
+        {% for p in active %}dsp->{{p.var}} = params[{{ loop.index0 }}];
+        {% endfor %}
     }
 
     // ----------------------------------------------------------------------------------------------------------------
