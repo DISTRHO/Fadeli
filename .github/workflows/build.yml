@@ -15,9 +15,14 @@ jobs:
           submodules: recursive
       - name: Cache faustpp build
         uses: actions/cache@v3
+        id: faustpp
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
+      - name: touch faustpp build
+        if: steps.faustpp.outputs.cache-hit == 'true'
+        run: |
+          touch build/faustpp/faustpp
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
@@ -35,9 +40,14 @@ jobs:
           submodules: recursive
       - name: Cache faustpp build
         uses: actions/cache@v3
+        id: faustpp
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
+      - name: touch faustpp build
+        if: steps.faustpp.outputs.cache-hit == 'true'
+        run: |
+          touch build/faustpp/faustpp
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
@@ -55,9 +65,14 @@ jobs:
           submodules: recursive
       - name: Cache faustpp build
         uses: actions/cache@v3
+        id: faustpp
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
+      - name: touch faustpp build
+        if: steps.faustpp.outputs.cache-hit == 'true'
+        run: |
+          touch build/faustpp/faustpp
       - name: Build native faustpp
         run: |
           make build/faustpp/faustpp -j $(nproc)
