@@ -25,13 +25,14 @@ clean:
 # ---------------------------------------------------------------------------------------------------------------------
 # faustpp target, building it ourselves if not available from the system
 
+ifneq ($(CROSS_COMPILING),true)
+APP_EXT =
+endif
+
 ifeq ($(shell command -v faustpp 1>/dev/null && echo true),true)
 FAUSTPP_TARGET =
 FAUSTPP_EXEC = faustpp
 else
-ifeq ($(CROSS_COMPILING),true)
-export APP_EXT =
-endif
 FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
@@ -60,7 +61,7 @@ gen: $(PLUGIN_GENERATED_FILES)
 # plugins target, for actual building the plugin stuff after its source code has been generated
 
 define PLUGIN_BUILD
-	$(MAKE) ladspa lv2_dsp vst2 vst3 clap -C build/fadeli-$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
+	$(MAKE) ladspa lv2_dsp vst2 vst3 clap -C build/fadeli-$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk APP_EXT=$(APP_EXT) NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
 
 endef
 

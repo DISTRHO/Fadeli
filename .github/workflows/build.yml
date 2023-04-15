@@ -19,10 +19,6 @@ jobs:
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
-      - name: touch faustpp build
-        if: steps.faustpp.outputs.cache-hit == 'true'
-        run: |
-          touch build/faustpp/faustpp
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
@@ -44,10 +40,6 @@ jobs:
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
-      - name: touch faustpp build
-        if: steps.faustpp.outputs.cache-hit == 'true'
-        run: |
-          touch build/faustpp/faustpp
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
@@ -69,17 +61,11 @@ jobs:
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
-      - name: touch faustpp build
-        if: steps.faustpp.outputs.cache-hit == 'true'
+      - name: Build native faustpp first
         run: |
-          touch build/faustpp/faustpp
-          ln -s faustpp build/faustpp/faustpp.exe
-      - name: Build native faustpp
-        run: |
-          make build/faustpp/faustpp -j $(nproc)
+          make faustpp -j $(nproc)
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           lto: true
           faust: true
-          pawpaw: true
