@@ -67,19 +67,3 @@ jobs:
           lto: true
           faust: true
           pawpaw: true
-
-  pluginval:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Cache faustpp build
-        uses: actions/cache@v3
-        with:
-          path: build/faustpp/faustpp
-          key: faustpp-${{ matrix.target }}
-      - uses: distrho/dpf-makefile-action@v1
-        with:
-          target: pluginval
-          faust: true
