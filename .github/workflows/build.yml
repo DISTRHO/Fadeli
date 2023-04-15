@@ -73,6 +73,7 @@ jobs:
         if: steps.faustpp.outputs.cache-hit == 'true'
         run: |
           touch build/faustpp/faustpp
+          ln -s faustpp build/faustpp/faustpp.exe
       - name: Build native faustpp
         run: |
           make build/faustpp/faustpp -j $(nproc)
