@@ -58,6 +58,9 @@ jobs:
         with:
           path: build/faustpp/faustpp
           key: faustpp-${{ matrix.target }}
+      - name: Build native faustpp
+        run: |
+          make build/faustpp/faustpp -j $(nproc)
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}

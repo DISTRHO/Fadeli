@@ -29,6 +29,9 @@ ifeq ($(shell command -v faustpp 1>/dev/null && echo true),true)
 FAUSTPP_TARGET =
 FAUSTPP_EXEC = faustpp
 else
+ifeq ($(CROSS_COMPILING),true)
+APP_EXT =
+endif
 FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
