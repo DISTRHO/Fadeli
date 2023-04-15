@@ -13,25 +13,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: faustpp cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            *.deb
-            build/faustpp/faustpp
-          key: linux-${{ inputs.target }}
-      - name: install faust
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
-          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
-          sudo dpkg -i *.deb
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           lto: true
+          faust: true
 
   macos:
     strategy:
@@ -42,25 +28,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: faustpp cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            *.deb
-            build/faustpp/faustpp
-          key: linux-${{ inputs.target }}
-      - name: install faust
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
-          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
-          sudo dpkg -i *.deb
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           lto: true
+          faust: true
 
   windows:
     strategy:
@@ -71,25 +43,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: faustpp cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            *.deb
-            build/faustpp/faustpp
-          key: linux-${{ inputs.target }}
-      - name: install faust
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
-          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
-          sudo dpkg -i *.deb
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           lto: true
+          faust: true
           pawpaw: true
 
   pluginval:
@@ -98,21 +56,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: faustpp cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            *.deb
-            build/faustpp/faustpp
-          key: linux-${{ inputs.target }}
-      - name: install faust
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxrandr-dev libsndfile1 libmicrohttpd12
-          wget -c https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust_2.41.1~ds0-0_amd64.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/faust-common_2.41.1~ds0-0_all.deb \
-                  https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/libfaust2_2.41.1~ds0-0_amd64.deb
-          sudo dpkg -i *.deb
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: pluginval
+          faust: true
