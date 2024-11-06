@@ -34,6 +34,9 @@
 #define DISTRHO_PLUGIN_NUM_INPUTS      {{inputs}}
 #define DISTRHO_PLUGIN_NUM_OUTPUTS     {{outputs}}
 
+#define DISTRHO_PLUGIN_BRAND_ID Dstr
+#define DISTRHO_PLUGIN_UNIQUE_ID {{uniqueid}}
+
 enum Parameters {
     // inputs
     {% for p in active %}kParameter_{{p.meta.symbol|default("" ~ loop.index)}},

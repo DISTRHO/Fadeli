@@ -10,11 +10,11 @@ jobs:
         target: [linux-arm64, linux-armhf, linux-i686, linux-riscv64, linux-x86_64]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Cache faustpp build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: faustpp
         with:
           path: build/faustpp/faustpp
@@ -29,13 +29,13 @@ jobs:
     strategy:
       matrix:
         target: [macos-intel, macos-universal]
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Cache faustpp build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: faustpp
         with:
           path: build/faustpp/faustpp
@@ -52,11 +52,11 @@ jobs:
         target: [win32, win64]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Cache faustpp build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: faustpp
         with:
           path: build/faustpp/faustpp

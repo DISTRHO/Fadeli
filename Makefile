@@ -61,7 +61,7 @@ gen: $(PLUGIN_GENERATED_FILES)
 # plugins target, for actual building the plugin stuff after its source code has been generated
 
 define PLUGIN_BUILD
-	$(MAKE) ladspa lv2_dsp vst2 vst3 clap -C build/fadeli-$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk APP_EXT=$(APP_EXT) NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
+	$(MAKE) ladspa lv2_dsp vst2 vst3 clap au -C build/fadeli-$(1) -f $(CURDIR)/dpf/Makefile.plugins.mk APP_EXT=$(APP_EXT) NAME=fadeli-$(1) FILES_DSP=Plugin.cpp
 
 endef
 
@@ -75,10 +75,14 @@ AS_LABEL   = $(shell echo $(1) | tr - _)
 AS_LV2_URI = urn:fadeli:$(1)
 AS_CLAP_ID = studio.kx.distrho.fadeli.$(1)
 
+# FIXME replace with a custom nice regex
+AS_UNIQUE_ID = $(shell echo $(1) | base64 | cut -c 1-4)
+
 FAUSTPP_ARGS = \
 	-Dbinary_name="fadeli-$(1)" \
 	-Dbrand="DISTRHO" \
 	-Dclapid="$(call AS_CLAP_ID,$(1))" \
+	-Duniqueid="$(call AS_UNIQUE_ID,$(1))" \
 	-Dhomepage="https://github.com/DISTRHO/Fadeli" \
 	-Dlabel="$(call AS_LABEL,$(1))" \
 	-Dlicense="ISC" \
