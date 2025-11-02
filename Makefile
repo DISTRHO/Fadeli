@@ -126,7 +126,7 @@ faustpp/CMakeLists.txt:
 	git clone --recursive https://github.com/falkTX/faustpp.git --depth=1 -b use-internal=boost
 
 build/faustpp/Makefile: faustpp/CMakeLists.txt
-	cmake -Bbuild/faustpp -Sfaustpp -DFAUSTPP_USE_INTERNAL_BOOST=ON $(CMAKE_ARGS)
+	cmake -Bbuild/faustpp -Sfaustpp -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DFAUSTPP_USE_INTERNAL_BOOST=ON $(CMAKE_ARGS)
 
 $(FAUSTPP_TARGET): build/faustpp/Makefile
 	$(MAKE) -C build/faustpp
